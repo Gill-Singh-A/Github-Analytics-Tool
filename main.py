@@ -115,8 +115,11 @@ class Github:
         if time_tag != None:
             return time_tag.text.strip().split('\n')[1].strip()
         return None
-    def getVCardInfo(self):
-        pass
+    def getLocation(self):
+        location_tag = self.home_page_html.find("li", attrs={"itemprop": "homeLocation"})
+        if location_tag != None:
+            return location_tag.text.strip()
+        return None
     def getBio(self):
         div_tags = self.home_page_html.find_all("div")
         for div_tag in div_tags:
