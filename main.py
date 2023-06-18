@@ -164,6 +164,11 @@ class Github:
                 organization["link"] = f"{Github.github}{link[1:]}"
             organizations.append(organization)
         return organizations
+    def getStatus(self):
+        status_tag = self.home_page_html.find("div", attrs={"class": "user-status-message-wrapper"})
+        if status_tag != None:
+            return status_tag.text.strip()
+        return None
 
 if __name__ == "__main__":
     pass
