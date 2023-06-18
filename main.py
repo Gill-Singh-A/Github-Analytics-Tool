@@ -8,6 +8,7 @@ class Github:
     repoTab = "?tab=repositories"
     followers = "?tab=followers"
     following = "?tab=following"
+    stars = "?tab=stars"
     page = "page="
     def __init__(self, ID):
         self.id = ID
@@ -64,7 +65,24 @@ class Github:
             following_page = requests.get(following_page_link)
             following_page_html = BeautifulSoup(following_page.content, "html.parser")
         return following
+    def getStarRepos(self):
+        starRepos = []
+        next_link = f"{self.home_page_link}{Github.stars}"
+        while next_link != None:
+            star_page = requests.get(next_link)
+            star_page_html = BeautifulSoup(star_page.content, "html.parser")
+            a_tags = star_page_html.find_all("a")
+            star_tags = star_page_html.find_all("span", attrs={"class": "text-normal"})
+            for star_tag in star_tags:
+                parent_tag = list(star_tag.parents)[0]
+                if parent_tag.get_attribute_list(key="href")[0] != "None":
+                    starRepos.append({"name": parent_tag.get_attribute_list(key="href")[0], "link": f"{Github.github}{parent_tag.get_attribute_list(key='href')[0]}"})
+            next_link = None
+            for a_tag in a_tags:
+                if a_tag.text == "Next":
+                    next_link = a_tag.get_attribute_list(key="href")[0]
+                    break
+        return starRepos
 
 if __name__ == "__main__":
-    user = Github("Gill-Singh-A")
-    print(user.getFollowing())
+    pass
