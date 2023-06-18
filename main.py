@@ -75,7 +75,7 @@ class Github:
             star_tags = star_page_html.find_all("span", attrs={"class": "text-normal"})
             for star_tag in star_tags:
                 parent_tag = list(star_tag.parents)[0]
-                if parent_tag.get_attribute_list(key="href")[0] != "None":
+                if parent_tag.get_attribute_list(key="href")[0] != None:
                     starRepos.append({"name": parent_tag.get_attribute_list(key="href")[0], "link": f"{Github.github}{parent_tag.get_attribute_list(key='href')[0]}"})
             next_link = None
             for a_tag in a_tags:
@@ -92,6 +92,20 @@ class Github:
             link_name = f"{link_name[0].upper()}{link_name[1:]}"
             links.append({"name": link_name, "link": link})
         return links
+    def VCardNames(self):
+        name_info = {}
+        vcard_names_tag = self.home_page_html.find("h1", attrs={"class": "vcard-names"})
+    def getVCardInfo(self):
+        pass
+    def getBio(self):
+        div_tags = self.home_page_html.find_all("div")
+        for div_tag in div_tags:
+            attribute_list = div_tag.get_attribute_list(key="class")
+            for attribute in attribute_list:
+                if type(attribute) == str:
+                    if "bio" in attribute:
+                        return div_tag.text
+        return ""
 
 if __name__ == "__main__":
     pass
