@@ -8,6 +8,7 @@ class Github:
     repoTab = "?tab=repositories"
     followers = "?tab=followers"
     following = "?tab=following"
+    achievement = "?tab=achievements"
     stars = "?tab=stars"
     page = "page="
     def __init__(self, ID):
@@ -129,6 +130,20 @@ class Github:
                     if "bio" in attribute:
                         return div_tag.text
         return None
+    def getAchievements(self):
+        achievements = []
+        achievement_page_link = f"{self.home_page_link}{Github.achievement}"
+        achievement_page = requests.get(achievement_page_link)
+        achievement_page_html = BeautifulSoup(achievement_page.content, "html.parser")
+        achievement_tags = achievement_page_html.find_all("img", attrs={"class": "achievement-badge-card"})
+        for achievement_tag in achievement_tags:
+            parent_tag = list(achievement_tag.parents)[0]
+            achievement = parent_tag.text.strip().split('\n')
+            if len(achievement) == 1:
+                achievements.append({"name": achievement[0], "count": 1})
+            else:
+                achievements.append({"name": achievement[0], "count": int(achievement[1][1:])})
+        return achievements
 
 if __name__ == "__main__":
     pass
