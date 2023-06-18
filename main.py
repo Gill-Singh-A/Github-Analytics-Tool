@@ -83,6 +83,15 @@ class Github:
                     next_link = a_tag.get_attribute_list(key="href")[0]
                     break
         return starRepos
+    def getLinks(self):
+        links = []
+        link_tags = self.home_page_html.find_all("a", attrs={"class": "Link--primary", "rel": "nofollow me"})
+        for link_tag in link_tags:
+            link = link_tag.get_attribute_list(key="href")[0]
+            link_name = link.split('.')[1]
+            link_name = f"{link_name[0].upper()}{link_name[1:]}"
+            links.append({"name": link_name, "link": link})
+        return links
 
 if __name__ == "__main__":
     pass
