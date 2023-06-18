@@ -149,6 +149,21 @@ class Github:
         if pro_tag == None:
             return False
         return True
+    def getOrganization(self):
+        organization_tags, organizations = [], []
+        avatar_tags = self.home_page_html.find_all("img", attrs={"class": "avatar"})
+        for avatar_tag in avatar_tags:
+            if len(avatar_tag.get_attribute_list(key="class")) == 1:
+                organization_tags.append(avatar_tag)
+        for organization_tag in organization_tags:
+            parent_tag = list(organization_tag.parents)[0]
+            organization = {}
+            organization["name"] = organization_tag.get_attribute_list(key="alt")[0][1:]
+            link = parent_tag.get_attribute_list(key='href')[0]
+            if link != None:
+                organization["link"] = f"{Github.github}{link[1:]}"
+            organizations.append(organization)
+        return organizations
 
 if __name__ == "__main__":
     pass
