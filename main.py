@@ -95,6 +95,16 @@ class Github:
     def VCardNames(self):
         name_info = {}
         vcard_names_tag = self.home_page_html.find("h1", attrs={"class": "vcard-names"})
+        name = vcard_names_tag.find("span", attrs={"itemprop": "name"})
+        nickname = vcard_names_tag.find("span", attrs={"itemprop": "additionalName"})
+        pronouns = vcard_names_tag.find("span", attrs={"itemprop": "pronouns"})
+        if name != None:
+            name_info["name"] = name.text.strip()
+        if nickname != None:
+            name_info["nickname"] = nickname.text.strip()
+        if pronouns != None:
+            name_info["pronouns"] = pronouns.text.strip()
+        return name_info
     def getVCardInfo(self):
         pass
     def getBio(self):
