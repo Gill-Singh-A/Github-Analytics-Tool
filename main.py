@@ -110,6 +110,11 @@ class Github:
         if work_tag != None:
             return work_tag.text.strip()
         return None
+    def getLocalTimeZone(self):
+        time_tag = self.home_page_html.find("li", attrs={"itemprop": "localTime"})
+        if time_tag != None:
+            return time_tag.text.strip().split('\n')[1].strip()
+        return None
     def getVCardInfo(self):
         pass
     def getBio(self):
