@@ -169,6 +169,11 @@ class Github:
         if status_tag != None:
             return status_tag.text.strip()
         return None
+    def getMail(self):
+        mail = self.home_page_html.find("li", attrs={"itemprop": "email"})
+        if mail != None:
+            return mail.text.strip()
+        return None
 
 if __name__ == "__main__":
     pass
