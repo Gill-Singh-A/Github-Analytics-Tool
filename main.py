@@ -105,6 +105,11 @@ class Github:
         if pronouns != None:
             name_info["pronouns"] = pronouns.text.strip()
         return name_info
+    def getWorkPlace(self):
+        work_tag = self.home_page_html.find("li", attrs={"itemprop": "worksFor"})
+        if work_tag != None:
+            return work_tag.text.strip()
+        return None
     def getVCardInfo(self):
         pass
     def getBio(self):
@@ -115,7 +120,7 @@ class Github:
                 if type(attribute) == str:
                     if "bio" in attribute:
                         return div_tag.text
-        return ""
+        return None
 
 if __name__ == "__main__":
     pass
