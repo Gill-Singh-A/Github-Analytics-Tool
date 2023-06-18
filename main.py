@@ -144,6 +144,11 @@ class Github:
             else:
                 achievements.append({"name": achievement[0], "count": int(achievement[1][1:])})
         return achievements
+    def isPro(self):
+        pro_tag = self.home_page_html.find("span", attrs={"title": "Label: Pro"})
+        if pro_tag == None:
+            return False
+        return True
 
 if __name__ == "__main__":
     pass
