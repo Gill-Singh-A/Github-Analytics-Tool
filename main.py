@@ -174,6 +174,12 @@ class Github:
         if mail != None:
             return mail.text.strip()
         return None
+    def getRepoBranchName(self, branch):
+        branch_link = f"{self.home_page_link}/{branch}"
+        branch_page = requests.get(branch_link)
+        branch_html = BeautifulSoup(branch_page.content, "html.parser")
+        branch_tag = branch_html.find("summary", attrs={"title": "Switch branches or tags"})
+        return branch_tag.text.strip()
 
 if __name__ == "__main__":
     pass
