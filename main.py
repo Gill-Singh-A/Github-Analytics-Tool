@@ -214,6 +214,19 @@ class Github:
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
         star_tag = repo_html.find_all("a", attrs={"href": f"/{self.id}/{repo}/commits/{self.getRepoDefaultBranch(repo)}"})[-1]
         return int(star_tag.text.strip().split('\n')[0])
+    def getRepoStarUsers(self, repo):
+        users = []
+        repo_link = f"{self.home_page_link}/{repo}/stargazers"
+        repo_page = requests.get(repo_link)
+        if repo_page.status_code != 200:
+            return None
+        repo_html = BeautifulSoup(repo_page.content, "html.parser")
+        user_tags = repo_html.find_all("a", attrs={"data-hovercard-type": "user"})
+        for user_tag in user_tags:
+            if user_tag.get_attribute_list(key="rel")[0] == "author" or user_tag.text.strip() == '':
+                continue
+            users.append(user_tag.text.strip())
+        return users
 
 if __name__ == "__main__":
     pass
