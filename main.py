@@ -248,6 +248,17 @@ class Github:
                 continue
             users.append(user_tag.text.strip())
         return users
+    def getRepoTopics(self, repo):
+        topics = []
+        repo_link = f"{self.home_page_link}/{repo}"
+        repo_page = requests.get(repo_link)
+        if repo_page.status_code != 200:
+            return None
+        repo_html = BeautifulSoup(repo_page.content, "html.parser")
+        topic_tags = repo_html.find_all("a", attrs={"class": "topic-tag"})
+        for topic_tag in topic_tags:
+            topics.append({"name": topic_tag.text.strip(), "link": f"{Github.github}{topic_tag.get_attribute_list(key='href')[0]}"})
+        return topics
 
 if __name__ == "__main__":
     pass
