@@ -273,6 +273,22 @@ class Github:
                     return about_tag.text.strip()
                 except AttributeError:
                     return None
+    def getLanguages(self, repo):
+        languages = []
+        repo_link = f"{self.home_page_link}/{repo}"
+        repo_page = requests.get(repo_link)
+        if repo_page.status_code != 200:
+            return None
+        repo_html = BeautifulSoup(repo_page.content, "html.parser")
+        h2_tags = repo_html.find_all("h2")
+        for h2_tag in h2_tags:
+            if h2_tag.text == "Languages":
+                languange_tags = list(h2_tag.parents)[0].find_all("a")
+                break
+        for language_tag in languange_tags:
+            language = language_tag.text.strip().split('\n')
+            languages.append({"name": language[0], "percentage": float(language[1][:-1])})
+        return languages
 
 if __name__ == "__main__":
     pass
