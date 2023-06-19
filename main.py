@@ -259,6 +259,20 @@ class Github:
         for topic_tag in topic_tags:
             topics.append({"name": topic_tag.text.strip(), "link": f"{Github.github}{topic_tag.get_attribute_list(key='href')[0]}"})
         return topics
+    def getRepoAbout(self, repo):
+        repo_link = f"{self.home_page_link}/{repo}"
+        repo_page = requests.get(repo_link)
+        if repo_page.status_code != 200:
+            return None
+        repo_html = BeautifulSoup(repo_page.content, "html.parser")
+        h2_tags = repo_html.find_all("h2")
+        for h2_tag in h2_tags:
+            if h2_tag.text == "About":
+                about_tag = list(h2_tag.parents)[0].find("p")
+                try:
+                    return about_tag.text.strip()
+                except AttributeError:
+                    return None
 
 if __name__ == "__main__":
     pass
