@@ -310,7 +310,7 @@ class Github:
                     contribution_data["date"] = contribution[5]
                     contribution_data["year"] = contribution[6]
                     contribution_calendar.append(contribution_data)
-        return contribution_data
+        return contribution_calendar
 
 if __name__ == "__main__":
     pass
