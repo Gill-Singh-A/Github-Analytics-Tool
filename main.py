@@ -289,6 +289,28 @@ class Github:
             language = language_tag.text.strip().split('\n')
             languages.append({"name": language[0], "percentage": float(language[1][:-1])})
         return languages
+    def getContributionCalendar(self):
+        contribution_calendar = []
+        year_tags = self.home_page_html.find_all("a", attrs={"class": "js-year-link"})
+        for year_tag in year_tags:
+            link = f"{Github.github[:-1]}{year_tag.get_attribute_list(key='href')[0]}"
+            page = requests.get(link)
+            html = BeautifulSoup(page.content, "html.parser")
+            rect_tags = html.find_all("rect", attrs={"class": "ContributionCalendar-day"})
+            for rect_tag in rect_tags:
+                if rect_tag.text != "":
+                    contribution = rect_tag.text.split(' ')
+                    contribution_data = {}
+                    if contribution[0] == "No":
+                        contribution_data["contributions"] = 0
+                    else:
+                        contribution_data["contributions"] = int(contribution[0])
+                    contribution_data["day"] = contribution[3]
+                    contribution_data["month"] = contribution[4]
+                    contribution_data["date"] = contribution[5]
+                    contribution_data["year"] = contribution[6]
+                    contribution_calendar.append(contribution_data)
+        return contribution_data
 
 if __name__ == "__main__":
     pass
