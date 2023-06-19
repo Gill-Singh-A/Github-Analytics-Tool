@@ -214,6 +214,14 @@ class Github:
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
         star_tag = repo_html.find_all("a", attrs={"href": f"/{self.id}/{repo}/commits/{self.getRepoDefaultBranch(repo)}"})[-1]
         return int(star_tag.text.strip().split('\n')[0])
+    def getRepoForkCount(self, repo):
+        repo_link = f"{self.home_page_link}/{repo}"
+        repo_page = requests.get(repo_link)
+        if repo_page.status_code != 200:
+            return None
+        repo_html = BeautifulSoup(repo_page.content, "html.parser")
+        star_tag = repo_html.find_all("a", attrs={"href": f"/{self.id}/{repo}/forks"})[-1]
+        return int(star_tag.text.strip().split('\n')[0])
     def getRepoStarUsers(self, repo):
         users = []
         repo_link = f"{self.home_page_link}/{repo}/stargazers"
