@@ -1,6 +1,8 @@
 #! /usr/bin/env python3
 
-import requests
+import requests, os
+from pathlib import Path
+from subprocess import run
 from bs4 import BeautifulSoup
 
 class Github:
@@ -32,7 +34,16 @@ class Github:
             repo_page_html = BeautifulSoup(repo_page.content, "html.parser")
             repositories = repo_page_html.find_all(itemprop="name codeRepository")
             for repository in repositories:
-                repos.append({"name": repository.get_attribute_list(key="href")[0].split('/')[-1], "link": f"{self.home_page_link}/{repository.get_attribute_list(key='href')[0].split('/')[-1]}"})
+                repos.append({"name": repository.get_attribute_list(key="href")[0].split('/')[-1],
+                              "link": f"{self.home_page_link}/{repository.get_attribute_list(key='href')[0].split('/')[-1]}",
+                              "default_branch": self.getRepoDefaultBranch(repository.get_attribute_list(key="href")[0].split('/')[-1]),
+                              "branch_count": self.getRepoBranchCount(repository.get_attribute_list(key="href")[0].split('/')[-1]),
+                              "commits": self.getRepoCommitCount(repository.get_attribute_list(key="href")[0].split('/')[-1]),
+                              "about": self.getRepoAbout(repository.get_attribute_list(key="href")[0].split('/')[-1]),
+                              "star_users": self.getRepoStarUsers(repository.get_attribute_list(key="href")[0].split('/')[-1]),
+                              "watchers": self.getRepoWatchers(repository.get_attribute_list(key="href")[0].split('/')[-1]),
+                              "forks": self.getRepoForkCount(repository.get_attribute_list(key="href")[0].split('/')[-1]),
+                              "topics": self.getRepoTopics(repository.get_attribute_list(key="href")[0].split('/')[-1])})
         return repos
     def getFollowers(self):
         page_number, followers = 1, []
@@ -311,6 +322,14 @@ class Github:
                     contribution_data["year"] = contribution[6]
                     contribution_calendar.append(contribution_data)
         return contribution_calendar
+    def dumpRepo(self, repo):
+        cwd = Path.cwd()
+        user_folder = cwd / "users" / self.id / "repositories"
+        user_folder.mkdir(exist_ok=True, parents=True)
+        os.chdir(str(user_folder))
+        run(["git", "clone", f"{self.home_page_link}/{repo}.git"])
+        os.chdir(cwd)
 
 if __name__ == "__main__":
-    pass
+    user = Github("Gill-Singh-A")
+    print(user.getRepos())
