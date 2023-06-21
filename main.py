@@ -363,7 +363,7 @@ class Github:
                         contribution_data["contributions"] = 0
                     else:
                         contribution_data["contributions"] = int(contribution[0])
-                    contribution_data["day"] = contribution[3]
+                    contribution_data["day"] = contribution[3][:-1]
                     contribution_data["month"] = contribution[4]
                     contribution_data["date"] = contribution[5]
                     contribution_data["year"] = contribution[6]
@@ -377,6 +377,9 @@ class Github:
         run(["git", "clone", f"{self.home_page_link}/{repo}.git"])
         os.chdir(cwd)
 
+def read(fileName):
+    pass
+
 if __name__ == "__main__":
     data = get_arguments(('-u', "--users", "users", "ID of the Users to get Details. (seperated by ',')"),
                          ('-l', "--load", "load", "File from which to load the Users"),
@@ -384,10 +387,12 @@ if __name__ == "__main__":
                          ('-r', "--read", "read", "Read a dump file"),
                          ('-a', "--account", "account", "Account of a User to login to, for getting more Details"))
     if data.read:
+        read(data.read)
         exit(0)
     if not data.users:
         if not data.load:
             display('-', f"Please Enter the {Back.MAGENTA}ID{Back.RESET} of the Users")
+            exit(0)
         else:
             try:
                 with open(data.load, 'r') as file:
@@ -463,6 +468,24 @@ if __name__ == "__main__":
         users_data[user]["contribution_calendar"] = github_user.getContributionCalendar()
         working_days = {"Monday": 0, "Tuesday": 0, "Wednesday": 0, "Thursday": 0, "Friday": 0, "Saturday": 0, "Sunday": 0}
         contributions = {"Monday": 0, "Tuesday": 0, "Wednesday": 0, "Thursday": 0, "Friday": 0, "Saturday": 0, "Sunday": 0}
+        total_working_days = 0
+        total_contributions = 0
+        for contribution in users_data[user]["contribution_calendar"]:
+            contributions[contribution["day"]] += contribution["contributions"]
+            total_contributions += contribution["contributions"]
+            if contribution["contributions"] > 0:
+                working_days[contribution["day"]] += 1
+                total_working_days += 1
+        working_days = dict(sorted(working_days.items(), key=lambda working_day: working_day[1]))
+        contributions = dict(sorted(contributions.items(), key=lambda contribution: contribution[1]))
+        if total_working_days == 0 or total_contributions == 0:
+            continue
+        display('+', "Working Days")
+        for working_day, day_count in working_days.items():
+            display(':', f"\t* {working_day}: {Back.MAGENTA}{day_count} ({day_count/total_working_days*100:.2f}){Back.RESET}")
+        display('+', "Contributions")
+        for contribution_day, contribution_count in contributions.items():
+            display(':', f"\t* {contribution_day}: {Back.MAGENTA}{contribution_count} ({contribution_count/total_contributions*100:.2f}){Back.RESET}")
     if data.write:
         cwd = Path.cwd()
         data_folder = cwd / "data"
