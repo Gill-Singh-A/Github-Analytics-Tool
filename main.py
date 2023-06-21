@@ -385,7 +385,8 @@ if __name__ == "__main__":
                          ('-l', "--load", "load", "File from which to load the Users"),
                          ('-w', "--write", "write", "Name of the file to dump extracted data"),
                          ('-r', "--read", "read", "Read a dump file"),
-                         ('-a', "--account", "account", "Account of a User to login to, for getting more Details"))
+                         ('-a', "--account", "account", "Account of a User to login to, for getting more Details"),
+                         ('-c', "--clone-repositories", "clone_repos", "Clone All Repositories of a User (True/False)"))
     if data.read:
         read(data.read)
         exit(0)
@@ -404,6 +405,7 @@ if __name__ == "__main__":
         data.users = data.users.split(',')
     users_data = {}
     for user in data.users:
+        print()
         users_data[user] = {}
         github_user = Github(user)
         if github_user.home_page.status_code != 200:
@@ -411,7 +413,8 @@ if __name__ == "__main__":
             continue
         users_data[user]["names"] = github_user.VCardNames()
         for name_type, name in users_data[user]["names"].items():
-            display(':', f"{name_type}:\t{Back.MAGENTA}{name}{Back.RESET}")
+            if name != '':
+                display(':', f"{name_type}:\t{Back.MAGENTA}{name}{Back.RESET}")
         users_data[user]["pro"] = github_user.isPro()
         if users_data[user]["pro"]:
             display(':', f"User has a {Back.MAGENTA}PRO{Back.RESET} Account")
@@ -515,6 +518,10 @@ if __name__ == "__main__":
             display(':', f"\t* {contribution_day}: {Back.MAGENTA}{contribution_count} ({contribution_count/total_contributions*100:.2f}%){Back.RESET}")
         display('*', f"Total Contributions = {Back.MAGENTA}{total_contributions}{Back.RESET}")
         print()
+        if data.clone_repos == "True":
+            display(':', f"Cloning {Back.MAGENTA}{len(users_data[user]['repos'])}{Back.RESET} Repositories")
+            for repo in users_data[user]["repos"]:
+                github_user.dumpRepo(repo["name"])
     if data.write:
         cwd = Path.cwd()
         data_folder = cwd / "data"
