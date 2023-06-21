@@ -33,3 +33,6 @@ It takes in the following arguments:
 It makes **data** and **users** folders.
 * data: It stores the dumped data of the users. (Dumped using *pickle*)
 * users: It stores the cloned repositories of the Users. (with User's name as the Parent Folder of the Cloned Repositories)
+
+### Note
+Reason of using *requests* instead of *github API* is that, by using this method of approach, it gives a proof that scrapping other Website that don't have API would be easy. Because the documentation of API is given online and can be easily used to get all required data.
