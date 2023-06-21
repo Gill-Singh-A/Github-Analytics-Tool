@@ -406,7 +406,6 @@ if __name__ == "__main__":
     for user in data.users:
         users_data[user] = {}
         github_user = Github(user)
-        '''
         if github_user.home_page.status_code != 200:
             display('-', f"{Back.MAGENTA}{user}{Back.RESET} not found")
             continue
@@ -491,7 +490,7 @@ if __name__ == "__main__":
             display('+', "Language used by User")
             for language, count in languages.items():
                 display(':', f"\t* {language}: {Back.MAGENTA}{count} ({count/total_languages*100:.2f}%){Back.RESET}")
-        print()'''
+        print()
         users_data[user]["contribution_calendar"] = github_user.getContributionCalendar()
         working_days = {"Monday": 0, "Tuesday": 0, "Wednesday": 0, "Thursday": 0, "Friday": 0, "Saturday": 0, "Sunday": 0}
         contributions = {"Monday": 0, "Tuesday": 0, "Wednesday": 0, "Thursday": 0, "Friday": 0, "Saturday": 0, "Sunday": 0}
