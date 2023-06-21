@@ -237,15 +237,21 @@ class Github:
             return None
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
         branch_tag = repo_html.find("summary", attrs={"title": "Switch branches or tags"})
-        return branch_tag.text.strip()
+        try:
+            return branch_tag.text.strip()
+        except:
+            return None
     def getRepoBranchCount(self, repo):
         repo_link = f"{self.home_page_link}/{repo}"
         repo_page = requests.get(repo_link)
         if repo_page.status_code != 200:
             return None
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
-        branch_count_tag = repo_html.find_all("a", attrs={"href": f"/{self.id}/{repo}/branches"})[-1]
-        return int(branch_count_tag.text.strip().split('\n')[0])
+        try:
+            branch_count_tag = repo_html.find_all("a", attrs={"href": f"/{self.id}/{repo}/branches"})[-1]
+            return int(branch_count_tag.text.strip().split('\n')[0])
+        except:
+            return 0
     def getRepoStarCount(self, repo):
         repo_link = f"{self.home_page_link}/{repo}"
         repo_page = requests.get(repo_link)
@@ -268,16 +274,22 @@ class Github:
         if repo_page.status_code != 200:
             return None
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
-        star_tag = repo_html.find_all("a", attrs={"href": f"/{self.id}/{repo}/commits/{self.getRepoDefaultBranch(repo)}"})[-1]
-        return int(star_tag.text.strip().split('\n')[0])
+        try:
+            star_tag = repo_html.find_all("a", attrs={"href": f"/{self.id}/{repo}/commits/{self.getRepoDefaultBranch(repo)}"})[-1]
+            return int(star_tag.text.strip().split('\n')[0])
+        except:
+            return 0
     def getRepoForkCount(self, repo):
         repo_link = f"{self.home_page_link}/{repo}"
         repo_page = requests.get(repo_link)
         if repo_page.status_code != 200:
             return None
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
-        star_tag = repo_html.find_all("a", attrs={"href": f"/{self.id}/{repo}/forks"})[-1]
-        return int(star_tag.text.strip().split('\n')[0])
+        try:
+            star_tag = repo_html.find_all("a", attrs={"href": f"/{self.id}/{repo}/forks"})[-1]
+            return int(star_tag.text.strip().split('\n')[0])
+        except:
+            return 0
     def getRepoStarUsers(self, repo):
         users = []
         repo_link = f"{self.home_page_link}/{repo}/stargazers"
@@ -378,7 +390,124 @@ class Github:
         os.chdir(cwd)
 
 def read(fileName):
-    pass
+    try:
+        with open(f"data/{fileName}", 'rb') as file:
+            users_data = load(file)
+    except FileNotFoundError:
+        display('-', f"File {Back.MAGENTA}{fileName}{Back.RESET} not found!")
+        return
+    except:
+        display('-', f"Error while reading File {Back.MAGENTA}{fileName}{Back.RESET}")
+        return
+    for user in users_data:
+        for name_type, name in users_data[user]["names"].items():
+            if name != '':
+                display(':', f"{name_type}:\t{Back.MAGENTA}{name}{Back.RESET}")
+        if users_data[user]["pro"]:
+            display(':', f"User has a {Back.MAGENTA}PRO{Back.RESET} Account")
+        if users_data[user]["mail"] != None:
+            display(':', f"Mail = {Back.MAGENTA}{users_data[user]['mail']}{Back.RESET}")
+        if users_data[user]["location"] != None:
+            display(':', f"Location = {Back.MAGENTA}{users_data[user]['location']}{Back.RESET}")
+        if users_data[user]["timezone"] != None:
+            display(':', f"Time Zone = {Back.MAGENTA}{users_data[user]['timezone']}{Back.RESET}")
+        if len(users_data[user]["organization"]) != 0:
+            display(':', f"Organization = {Back.MAGENTA}{users_data[user]['organization']}{Back.RESET}")
+        if users_data[user]["workplace"] != None:
+            display(':', f"Workplace = {Back.MAGENTA}{users_data[user]['workplace']}{Back.RESET}")
+        if len(users_data[user]["links"]) != 0:
+            display('+', "Links")
+            for link in users_data[user]["links"]:
+                display(':', f"\t{link['name']}:\t{Back.MAGENTA}{link['link']}{Back.RESET}")
+        if users_data[user]["status"] != None:
+            display(':', f"Status = {Back.MAGENTA}{users_data[user]['status']}{Back.RESET}")
+        if users_data[user]["bio"] != None and users_data[user]["bio"] != '':
+            display(':', f"Bio: {users_data[user]['bio']}")
+        if len(users_data[user]["achievements"]) != 0:
+            display('+', f"Achievements")
+            for achievement in users_data[user]["achievements"]:
+                display(':', f"\t{Back.MAGENTA}{achievement['name']}{Back.RESET}: {achievement['count']}")
+        if len(users_data[user]["followers"]) != 0:
+            display('+', "Followers")
+            for follower in users_data[user]["followers"]:
+                display(':', f"\t* {follower} ({Back.MAGENTA}{Github.github}{follower}{Back.RESET})")
+        if len(users_data[user]["following"]) != 0:
+            display('+', "Following")
+            for following in users_data[user]["following"]:
+                display(':', f"\t* {following} ({Back.MAGENTA}{Github.github}{following}{Back.RESET})")
+        repos = users_data[user]["repos"]
+        for repo in repos:
+            display(' ', f"Repository     = {Back.MAGENTA}{repo['name']}{Back.RESET}")
+            display(':', f"Link           = {Back.MAGENTA}{repo['link']}{Back.RESET}")
+            if repo['about'] != None:
+                display(':', f"About          = {Back.MAGENTA}{repo['about']}{Back.RESET}")
+            display(':', f"Default Branch = {Back.MAGENTA}{repo['default_branch']}{Back.RESET}")
+            display(':', f"Commits        = {Back.MAGENTA}{repo['commits']}{Back.RESET}")
+            display(':', f"Stars          = {Back.MAGENTA}{len(repo['star_users'])}{Back.RESET}")
+            display(':', f"Watchers       = {Back.MAGENTA}{len(repo['watchers'])}{Back.RESET}")
+            display(':', f"Forks          = {Back.MAGENTA}{repo['forks']}{Back.RESET}")
+            if len(repo['languages']) != 0:
+                display('+', "Languages")
+                for langauge in repo["languages"]:
+                    display(':', f"\t* {langauge['percentage']}% => {Back.MAGENTA}{langauge['name']}{Back.RESET}")
+            if len(repo['topics']) != 0:
+                display('+', "Topics")
+                for topic in repo["topics"]:
+                    display(':', f"\t* {topic['name']} ({Back.MAGENTA}{topic['link']}{Back.RESET})")
+        display(':', f"Total Repositories = {Back.MAGENTA}{len(users_data[user]['repos'])}{Back.RESET}")
+        if len(users_data[user]["starred_repos"]) != 0:
+            display('+', "Starred Repositories")
+            for starred_repo in users_data[user]["starred_repos"]:
+                display(':', f"\t* {starred_repo['name']} ({Back.MAGENTA}{starred_repo['link']}{Back.RESET})")
+        repo_major_languages = {}
+        languages = {}
+        total_repo_major_languages = 0
+        total_languages = 0
+        for repo in users_data[user]["repos"]:
+            if len(repo["languages"]) > 0:
+                if repo["languages"][0]["name"] not in repo_major_languages.keys():
+                    repo_major_languages[repo["languages"][0]["name"]] = 0
+                repo_major_languages[repo["languages"][0]["name"]] += 1
+                total_repo_major_languages += 1
+            for language in repo["languages"]:
+                if language["name"] not in languages.keys():
+                    languages[language["name"]] = 0
+                languages[language["name"]] += 1
+                total_languages += 1
+        repo_major_languages = dict(list(reversed(sorted(repo_major_languages.items(), key=lambda major_language: major_language[1]))))
+        langauges = dict(list(reversed(sorted(languages.items(), key=lambda language: language[1]))))
+        if len(repo_major_languages) > 0:
+            display('+', "Major Language of Repositories")
+            for repo_major_langauge, count in repo_major_languages.items():
+                display(':', f"\t* {repo_major_langauge}: {Back.MAGENTA}{count} ({count/total_repo_major_languages*100:.2f}%){Back.RESET}")
+        if len(languages) > 0:
+            display('+', "Language used by User")
+            for language, count in languages.items():
+                display(':', f"\t* {language}: {Back.MAGENTA}{count} ({count/total_languages*100:.2f}%){Back.RESET}")
+        print()
+        working_days = {"Monday": 0, "Tuesday": 0, "Wednesday": 0, "Thursday": 0, "Friday": 0, "Saturday": 0, "Sunday": 0}
+        contributions = {"Monday": 0, "Tuesday": 0, "Wednesday": 0, "Thursday": 0, "Friday": 0, "Saturday": 0, "Sunday": 0}
+        total_working_days = 0
+        total_contributions = 0
+        for contribution in users_data[user]["contribution_calendar"]:
+            contributions[contribution["day"]] += contribution["contributions"]
+            total_contributions += contribution["contributions"]
+            if contribution["contributions"] > 0:
+                working_days[contribution["day"]] += 1
+                total_working_days += 1
+        working_days = dict(list(reversed((sorted(working_days.items(), key=lambda working_day: working_day[1])))))
+        contributions = dict(list(reversed(sorted(contributions.items(), key=lambda contribution: contribution[1]))))
+        if total_working_days == 0 or total_contributions == 0:
+            continue
+        display('+', "Working Days")
+        for working_day, day_count in working_days.items():
+            display(':', f"\t* {working_day}: {Back.MAGENTA}{day_count} ({day_count/total_working_days*100:.2f}%){Back.RESET}")
+        display('*', f"Total Working Days = {Back.MAGENTA}{total_working_days}{Back.RESET}")
+        display('+', "Contributions")
+        for contribution_day, contribution_count in contributions.items():
+            display(':', f"\t* {contribution_day}: {Back.MAGENTA}{contribution_count} ({contribution_count/total_contributions*100:.2f}%){Back.RESET}")
+        display('*', f"Total Contributions = {Back.MAGENTA}{total_contributions}{Back.RESET}")
+        print()
 
 if __name__ == "__main__":
     data = get_arguments(('-u', "--users", "users", "ID of the Users to get Details. (seperated by ',')"),
@@ -406,11 +535,11 @@ if __name__ == "__main__":
     users_data = {}
     for user in data.users:
         print()
-        users_data[user] = {}
         github_user = Github(user)
         if github_user.home_page.status_code != 200:
             display('-', f"{Back.MAGENTA}{user}{Back.RESET} not found")
             continue
+        users_data[user] = {}
         users_data[user]["names"] = github_user.VCardNames()
         for name_type, name in users_data[user]["names"].items():
             if name != '':
