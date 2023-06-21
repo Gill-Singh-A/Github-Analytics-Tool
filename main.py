@@ -4,8 +4,8 @@ import requests, os
 from pathlib import Path
 from datetime import date
 from subprocess import run
-from optparse import OptionParser
 from bs4 import BeautifulSoup
+from optparse import OptionParser
 from pickle import dump, load
 from colorama import Fore, Back, Style
 from time import strftime, localtime, sleep, time
@@ -44,6 +44,7 @@ class Github:
             self.found = True
         else:
             self.found = False
+            return
         self.repoCount = self.getRepoCount()
     def getRepoCount(self):
         counter = self.home_page_html.find("span", attrs={"class": "Counter"})
@@ -325,7 +326,7 @@ class Github:
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
         topic_tags = repo_html.find_all("a", attrs={"class": "topic-tag"})
         for topic_tag in topic_tags:
-            topics.append({"name": topic_tag.text.strip(), "link": f"{Github.github}{topic_tag.get_attribute_list(key='href')[0]}"})
+            topics.append({"name": topic_tag.text.strip(), "link": f"{Github.github[:-1]}{topic_tag.get_attribute_list(key='href')[0]}"})
         return topics
     def getRepoAbout(self, repo):
         repo_link = f"{self.home_page_link}/{repo}"
@@ -412,7 +413,12 @@ def read(fileName):
         if users_data[user]["timezone"] != None:
             display(':', f"Time Zone = {Back.MAGENTA}{users_data[user]['timezone']}{Back.RESET}")
         if len(users_data[user]["organization"]) != 0:
-            display(':', f"Organization = {Back.MAGENTA}{users_data[user]['organization']}{Back.RESET}")
+            display('+', f"Organizations")
+            for organization in users_data[user]["organization"]:
+                if "link" in organization.keys():
+                    display(':', f"\t* {organization['name']}({Back.MAGENTA}{organization['link']}{Back.RESET})")
+                else:
+                    display(':', f"\t* {organization['name']}")
         if users_data[user]["workplace"] != None:
             display(':', f"Workplace = {Back.MAGENTA}{users_data[user]['workplace']}{Back.RESET}")
         if len(users_data[user]["links"]) != 0:
@@ -459,6 +465,7 @@ def read(fileName):
             display('+', "Starred Repositories")
             for starred_repo in users_data[user]["starred_repos"]:
                 display(':', f"\t* {starred_repo['name']} ({Back.MAGENTA}{starred_repo['link']}{Back.RESET})")
+        print()
         repo_major_languages = {}
         languages = {}
         total_repo_major_languages = 0
@@ -557,7 +564,12 @@ if __name__ == "__main__":
             display(':', f"Time Zone = {Back.MAGENTA}{users_data[user]['timezone']}{Back.RESET}")
         users_data[user]["organization"] = github_user.getOrganization()
         if len(users_data[user]["organization"]) != 0:
-            display(':', f"Organization = {Back.MAGENTA}{users_data[user]['organization']}{Back.RESET}")
+            display('+', f"Organizations")
+            for organization in users_data[user]["organization"]:
+                if "link" in organization.keys():
+                    display(':', f"\t* {organization['name']}({Back.MAGENTA}{organization['link']}{Back.RESET})")
+                else:
+                    display(':', f"\t* {organization['name']}")
         users_data[user]["workplace"] = github_user.getWorkPlace()
         if users_data[user]["workplace"] != None:
             display(':', f"Workplace = {Back.MAGENTA}{users_data[user]['workplace']}{Back.RESET}")
@@ -596,6 +608,7 @@ if __name__ == "__main__":
             display('+', "Starred Repositories")
             for starred_repo in users_data[user]["starred_repos"]:
                 display(':', f"\t* {starred_repo['name']} ({Back.MAGENTA}{starred_repo['link']}{Back.RESET})")
+        print()
         repo_major_languages = {}
         languages = {}
         total_repo_major_languages = 0
