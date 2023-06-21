@@ -1,0 +1,6 @@
+requests
+beautifulsoup4
+BeautifulSoup4
+bs4
+datetime
+colorama
