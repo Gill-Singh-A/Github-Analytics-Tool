@@ -82,7 +82,7 @@ class Github:
                     if len(repo['languages']) != 0:
                         display('+', "Languages")
                         for langauge in repo["languages"]:
-                            display(':', f"\t* {langauge['percentage']} => {Back.MAGENTA}{langauge['name']}{Back.RESET}")
+                            display(':', f"\t* {langauge['percentage']}% => {Back.MAGENTA}{langauge['name']}{Back.RESET}")
                     if len(repo['topics']) != 0:
                         display('+', "Topics")
                         for topic in repo["topics"]:
@@ -406,6 +406,7 @@ if __name__ == "__main__":
     for user in data.users:
         users_data[user] = {}
         github_user = Github(user)
+        '''
         if github_user.home_page.status_code != 200:
             display('-', f"{Back.MAGENTA}{user}{Back.RESET} not found")
             continue
@@ -456,7 +457,7 @@ if __name__ == "__main__":
             display('+', "Following")
             for following in users_data[user]["following"]:
                 display(':', f"\t* {following} ({Back.MAGENTA}{Github.github}{following}{Back.RESET})")
-        display(':', "Fetching Repository Data...")
+        display(':', "Fetching Repository Data...", start='\n')
         users_data[user]["repos"] = github_user.getRepos(verbose=True)
         display('+', "Gathered Repository Data")
         display(':', f"Total Repositories = {Back.MAGENTA}{len(users_data[user]['repos'])}{Back.RESET}")
@@ -465,6 +466,32 @@ if __name__ == "__main__":
             display('+', "Starred Repositories")
             for starred_repo in users_data[user]["starred_repos"]:
                 display(':', f"\t* {starred_repo['name']} ({Back.MAGENTA}{starred_repo['link']}{Back.RESET})")
+        repo_major_languages = {}
+        languages = {}
+        total_repo_major_languages = 0
+        total_languages = 0
+        for repo in users_data[user]["repos"]:
+            if len(repo["languages"]) > 0:
+                if repo["languages"][0]["name"] not in repo_major_languages.keys():
+                    repo_major_languages[repo["languages"][0]["name"]] = 0
+                repo_major_languages[repo["languages"][0]["name"]] += 1
+                total_repo_major_languages += 1
+            for language in repo["languages"]:
+                if language["name"] not in languages.keys():
+                    languages[language["name"]] = 0
+                languages[language["name"]] += 1
+                total_languages += 1
+        repo_major_languages = dict(list(reversed(sorted(repo_major_languages.items(), key=lambda major_language: major_language[1]))))
+        langauges = dict(list(reversed(sorted(languages.items(), key=lambda language: language[1]))))
+        if len(repo_major_languages) > 0:
+            display('+', "Major Language of Repositories")
+            for repo_major_langauge, count in repo_major_languages.items():
+                display(':', f"\t* {repo_major_langauge}: {Back.MAGENTA}{count} ({count/total_repo_major_languages*100:.2f}%){Back.RESET}")
+        if len(languages) > 0:
+            display('+', "Language used by User")
+            for language, count in languages.items():
+                display(':', f"\t* {language}: {Back.MAGENTA}{count} ({count/total_languages*100:.2f}%){Back.RESET}")
+        print()'''
         users_data[user]["contribution_calendar"] = github_user.getContributionCalendar()
         working_days = {"Monday": 0, "Tuesday": 0, "Wednesday": 0, "Thursday": 0, "Friday": 0, "Saturday": 0, "Sunday": 0}
         contributions = {"Monday": 0, "Tuesday": 0, "Wednesday": 0, "Thursday": 0, "Friday": 0, "Saturday": 0, "Sunday": 0}
@@ -476,16 +503,19 @@ if __name__ == "__main__":
             if contribution["contributions"] > 0:
                 working_days[contribution["day"]] += 1
                 total_working_days += 1
-        working_days = dict(sorted(working_days.items(), key=lambda working_day: working_day[1]))
-        contributions = dict(sorted(contributions.items(), key=lambda contribution: contribution[1]))
+        working_days = dict(list(reversed((sorted(working_days.items(), key=lambda working_day: working_day[1])))))
+        contributions = dict(list(reversed(sorted(contributions.items(), key=lambda contribution: contribution[1]))))
         if total_working_days == 0 or total_contributions == 0:
             continue
         display('+', "Working Days")
         for working_day, day_count in working_days.items():
-            display(':', f"\t* {working_day}: {Back.MAGENTA}{day_count} ({day_count/total_working_days*100:.2f}){Back.RESET}")
+            display(':', f"\t* {working_day}: {Back.MAGENTA}{day_count} ({day_count/total_working_days*100:.2f}%){Back.RESET}")
+        display('*', f"Total Working Days = {Back.MAGENTA}{total_working_days}{Back.RESET}")
         display('+', "Contributions")
         for contribution_day, contribution_count in contributions.items():
-            display(':', f"\t* {contribution_day}: {Back.MAGENTA}{contribution_count} ({contribution_count/total_contributions*100:.2f}){Back.RESET}")
+            display(':', f"\t* {contribution_day}: {Back.MAGENTA}{contribution_count} ({contribution_count/total_contributions*100:.2f}%){Back.RESET}")
+        display('*', f"Total Contributions = {Back.MAGENTA}{total_contributions}{Back.RESET}")
+        print()
     if data.write:
         cwd = Path.cwd()
         data_folder = cwd / "data"
