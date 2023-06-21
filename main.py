@@ -514,7 +514,6 @@ if __name__ == "__main__":
                          ('-l', "--load", "load", "File from which to load the Users"),
                          ('-w', "--write", "write", "Name of the file to dump extracted data"),
                          ('-r', "--read", "read", "Read a dump file"),
-                         ('-a', "--account", "account", "Account of a User to login to, for getting more Details"),
                          ('-c', "--clone-repositories", "clone_repos", "Clone All Repositories of a User (True/False)"))
     if data.read:
         read(data.read)
