@@ -17,6 +17,11 @@ status_color = {
     ':': Fore.CYAN,
     ' ': Fore.WHITE
 }
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.5615.50 Safari/537.36",
+    "Connection": "close",
+    "DNT": "1"
+}
 
 def display(status, data, start='', end='\n'):
     print(f"{start}{status_color[status]}[{status}] {Fore.BLUE}[{date.today()} {strftime('%H:%M:%S', localtime())}] {status_color[status]}{Style.BRIGHT}{data}{Fore.RESET}{Style.RESET_ALL}", end=end)
@@ -39,7 +44,9 @@ class Github:
         self.id = ID
         self.home_page_link = f"{Github.github}{self.id}"
         self.home_page = requests.get(self.home_page_link)
+        self.home_page_user = requests.get(self.home_page_link, headers=headers)
         self.home_page_html = BeautifulSoup(self.home_page.content, "html.parser")
+        self.home_page_user_html = BeautifulSoup(self.home_page.content, "html.parser")
         if self.home_page.status_code == 200:
             self.found = True
         else:
@@ -47,13 +54,17 @@ class Github:
             return
         self.repoCount = self.getRepoCount()
     def getRepoCount(self):
-        counter = self.home_page_html.find("span", attrs={"class": "Counter"})
-        return int(counter.text)
+        counters = self.home_page_user_html.find_all("span", attrs={"class": "Counter"})
+        for counter in counters:
+            try:
+                return int(counter.text)
+            except:
+                pass
     def getRepos(self, verbose=False):
         repos = []
         while len(repos) != self.repoCount:
             repo_page_link = f"{self.home_page_link}/{Github.repoTab}&{Github.page}{len(repos)//30+1}"
-            repo_page = requests.get(repo_page_link)
+            repo_page = requests.get(repo_page_link, headers=headers)
             repo_page_html = BeautifulSoup(repo_page.content, "html.parser")
             repositories = repo_page_html.find_all(itemprop="name codeRepository")
             for repository in repositories:
@@ -94,7 +105,7 @@ class Github:
     def getFollowers(self):
         page_number, followers = 1, []
         followers_page_link = f"{self.home_page_link}/{Github.followers}&{Github.page}{page_number}"
-        followers_page = requests.get(followers_page_link)
+        followers_page = requests.get(followers_page_link, headers=headers)
         followers_page_html = BeautifulSoup(followers_page.content, "html.parser")
         while True:
             follower_tags = followers_page_html.find_all("span", attrs={"class": "Link--secondary"})
@@ -104,13 +115,13 @@ class Github:
                 followers.append(follower_tag.text)
             page_number += 1
             followers_page_link = f"{self.home_page_link}/{Github.followers}&{Github.page}{page_number}"
-            followers_page = requests.get(followers_page_link)
+            followers_page = requests.get(followers_page_link, headers=headers)
             followers_page_html = BeautifulSoup(followers_page.content, "html.parser")
         return followers
     def getFollowing(self):
         page_number, following = 1, []
         following_page_link = f"{self.home_page_link}/{Github.following}&{Github.page}{page_number}"
-        following_page = requests.get(following_page_link)
+        following_page = requests.get(following_page_link, headers=headers)
         following_page_html = BeautifulSoup(following_page.content, "html.parser")
         while True:
             follower_tags = following_page_html.find_all("span", attrs={"class": "Link--secondary"})
@@ -120,14 +131,14 @@ class Github:
                 following.append(follower_tag.text)
             page_number += 1
             following_page_link = f"{self.home_page_link}/{Github.following}&{Github.page}{page_number}"
-            following_page = requests.get(following_page_link)
+            following_page = requests.get(following_page_link, headers=headers)
             following_page_html = BeautifulSoup(following_page.content, "html.parser")
         return following
     def getStarRepos(self):
         starRepos = []
         next_link = f"{self.home_page_link}{Github.stars}"
         while next_link != None:
-            star_page = requests.get(next_link)
+            star_page = requests.get(next_link, headers=headers)
             star_page_html = BeautifulSoup(star_page.content, "html.parser")
             a_tags = star_page_html.find_all("a")
             star_tags = star_page_html.find_all("span", attrs={"class": "text-normal"})
@@ -190,7 +201,7 @@ class Github:
     def getAchievements(self):
         achievements = []
         achievement_page_link = f"{self.home_page_link}{Github.achievement}"
-        achievement_page = requests.get(achievement_page_link)
+        achievement_page = requests.get(achievement_page_link, headers=headers)
         achievement_page_html = BeautifulSoup(achievement_page.content, "html.parser")
         achievement_tags = achievement_page_html.find_all("img", attrs={"class": "achievement-badge-card"})
         for achievement_tag in achievement_tags:
@@ -233,7 +244,7 @@ class Github:
         return None
     def getRepoDefaultBranch(self, repo):
         repo_link = f"{self.home_page_link}/{repo}"
-        repo_page = requests.get(repo_link)
+        repo_page = requests.get(repo_link, headers=headers)
         if repo_page.status_code != 200:
             return None
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
@@ -244,7 +255,7 @@ class Github:
             return None
     def getRepoBranchCount(self, repo):
         repo_link = f"{self.home_page_link}/{repo}"
-        repo_page = requests.get(repo_link)
+        repo_page = requests.get(repo_link, headers=headers)
         if repo_page.status_code != 200:
             return None
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
@@ -255,7 +266,7 @@ class Github:
             return 0
     def getRepoStarCount(self, repo):
         repo_link = f"{self.home_page_link}/{repo}"
-        repo_page = requests.get(repo_link)
+        repo_page = requests.get(repo_link, headers=headers)
         if repo_page.status_code != 200:
             return None
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
@@ -263,7 +274,7 @@ class Github:
         return int(star_tag.text.strip().split('\n')[0])
     def getRepoWatcherCount(self, repo):
         repo_link = f"{self.home_page_link}/{repo}"
-        repo_page = requests.get(repo_link)
+        repo_page = requests.get(repo_link, headers=headers)
         if repo_page.status_code != 200:
             return None
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
@@ -271,7 +282,7 @@ class Github:
         return int(star_tag.text.strip().split('\n')[0])
     def getRepoCommitCount(self, repo):
         repo_link = f"{self.home_page_link}/{repo}"
-        repo_page = requests.get(repo_link)
+        repo_page = requests.get(repo_link, headers=headers)
         if repo_page.status_code != 200:
             return None
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
@@ -282,7 +293,7 @@ class Github:
             return 0
     def getRepoForkCount(self, repo):
         repo_link = f"{self.home_page_link}/{repo}"
-        repo_page = requests.get(repo_link)
+        repo_page = requests.get(repo_link, headers=headers)
         if repo_page.status_code != 200:
             return None
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
@@ -294,7 +305,7 @@ class Github:
     def getRepoStarUsers(self, repo):
         users = []
         repo_link = f"{self.home_page_link}/{repo}/stargazers"
-        repo_page = requests.get(repo_link)
+        repo_page = requests.get(repo_link, headers=headers)
         if repo_page.status_code != 200:
             return None
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
@@ -307,7 +318,7 @@ class Github:
     def getRepoWatchers(self, repo):
         users = []
         repo_link = f"{self.home_page_link}/{repo}/watchers"
-        repo_page = requests.get(repo_link)
+        repo_page = requests.get(repo_link, headers=headers)
         if repo_page.status_code != 200:
             return None
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
@@ -320,7 +331,7 @@ class Github:
     def getRepoTopics(self, repo):
         topics = []
         repo_link = f"{self.home_page_link}/{repo}"
-        repo_page = requests.get(repo_link)
+        repo_page = requests.get(repo_link, headers=headers)
         if repo_page.status_code != 200:
             return None
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
@@ -330,7 +341,7 @@ class Github:
         return topics
     def getRepoAbout(self, repo):
         repo_link = f"{self.home_page_link}/{repo}"
-        repo_page = requests.get(repo_link)
+        repo_page = requests.get(repo_link, headers=headers)
         if repo_page.status_code != 200:
             return None
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
@@ -345,7 +356,7 @@ class Github:
     def getRepoLanguages(self, repo):
         languages = []
         repo_link = f"{self.home_page_link}/{repo}"
-        repo_page = requests.get(repo_link)
+        repo_page = requests.get(repo_link, headers=headers)
         if repo_page.status_code != 200:
             return None
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
@@ -365,7 +376,7 @@ class Github:
         year_tags = self.home_page_html.find_all("a", attrs={"class": "js-year-link"})
         for year_tag in year_tags:
             link = f"{Github.github[:-1]}{year_tag.get_attribute_list(key='href')[0]}"
-            page = requests.get(link)
+            page = requests.get(link, headers=headers)
             html = BeautifulSoup(page.content, "html.parser")
             rect_tags = html.find_all("rect", attrs={"class": "ContributionCalendar-day"})
             for rect_tag in rect_tags:
@@ -521,7 +532,8 @@ if __name__ == "__main__":
                          ('-l', "--load", "load", "File from which to load the Users"),
                          ('-w', "--write", "write", "Name of the file to dump extracted data"),
                          ('-r', "--read", "read", "Read a dump file"),
-                         ('-c', "--clone-repositories", "clone_repos", "Clone All Repositories of a User (True/False)"))
+                         ('-c', "--clone-repositories", "clone_repos", "Clone All Repositories of a User (True/False)"),
+                         ('-s', "--session-id", "session_id", "Session-ID (Cookie) for Request Header (If Log-In)"))
     if data.read:
         read(data.read)
         exit(0)
@@ -538,6 +550,9 @@ if __name__ == "__main__":
                 exit(0)
     else:
         data.users = data.users.split(',')
+    if data.session_id:
+        display(':', "Setting Session-ID")
+        headers["Cookie"] = data.session_id
     users_data = {}
     for user in data.users:
         print()
