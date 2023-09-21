@@ -314,6 +314,8 @@ class Github:
             if user_tag.get_attribute_list(key="rel")[0] == "author" or user_tag.text.strip() == '':
                 continue
             users.append(user_tag.text.strip())
+        if "Cookie" in headers.keys():
+            users = users[1:]
         return users
     def getRepoWatchers(self, repo):
         users = []
@@ -327,6 +329,8 @@ class Github:
             if user_tag.get_attribute_list(key="rel")[0] == "author" or user_tag.text.strip() == '':
                 continue
             users.append(user_tag.text.strip())
+        if "Cookie" in headers.keys():
+            users = users[1:]
         return users
     def getRepoTopics(self, repo):
         topics = []
