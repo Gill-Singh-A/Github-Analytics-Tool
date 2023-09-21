@@ -68,17 +68,19 @@ class Github:
             repo_page_html = BeautifulSoup(repo_page.content, "html.parser")
             repositories = repo_page_html.find_all(itemprop="name codeRepository")
             for repository in repositories:
+                repo_link = f"{self.home_page_link}/{repository.get_attribute_list(key='href')[0].split('/')[-1]}"
+                repo_page = requests.get(repo_link, headers=headers)
                 repos.append({"name": repository.get_attribute_list(key="href")[0].split('/')[-1],
                               "link": f"{self.home_page_link}/{repository.get_attribute_list(key='href')[0].split('/')[-1]}",
-                              "default_branch": self.getRepoDefaultBranch(repository.get_attribute_list(key="href")[0].split('/')[-1]),
-                              "branch_count": self.getRepoBranchCount(repository.get_attribute_list(key="href")[0].split('/')[-1]),
-                              "commits": self.getRepoCommitCount(repository.get_attribute_list(key="href")[0].split('/')[-1]),
-                              "about": self.getRepoAbout(repository.get_attribute_list(key="href")[0].split('/')[-1]),
+                              "default_branch": self.getRepoDefaultBranch(repository.get_attribute_list(key="href")[0].split('/')[-1], repo_page=repo_page),
+                              "branch_count": self.getRepoBranchCount(repository.get_attribute_list(key="href")[0].split('/')[-1], repo_page=repo_page),
+                              "commits": self.getRepoCommitCount(repository.get_attribute_list(key="href")[0].split('/')[-1], repo_page=repo_page),
+                              "about": self.getRepoAbout(repository.get_attribute_list(key="href")[0].split('/')[-1], repo_page=repo_page),
                               "star_users": self.getRepoStarUsers(repository.get_attribute_list(key="href")[0].split('/')[-1]),
                               "watchers": self.getRepoWatchers(repository.get_attribute_list(key="href")[0].split('/')[-1]),
-                              "forks": self.getRepoForkCount(repository.get_attribute_list(key="href")[0].split('/')[-1]),
-                              "topics": self.getRepoTopics(repository.get_attribute_list(key="href")[0].split('/')[-1]),
-                              "languages": self.getRepoLanguages(repository.get_attribute_list(key="href")[0].split('/')[-1])})
+                              "forks": self.getRepoForkCount(repository.get_attribute_list(key="href")[0].split('/')[-1], repo_page=repo_page),
+                              "topics": self.getRepoTopics(repository.get_attribute_list(key="href")[0].split('/')[-1], repo_page=repo_page),
+                              "languages": self.getRepoLanguages(repository.get_attribute_list(key="href")[0].split('/')[-1], repo_page=repo_page)})
                 repo = repos[-1]
                 if verbose:
                     print()
@@ -242,9 +244,10 @@ class Github:
         if mail != None:
             return mail.text.strip()
         return None
-    def getRepoDefaultBranch(self, repo):
-        repo_link = f"{self.home_page_link}/{repo}"
-        repo_page = requests.get(repo_link, headers=headers)
+    def getRepoDefaultBranch(self, repo, repo_page=None):
+        if repo_page == None:
+            repo_link = f"{self.home_page_link}/{repo}"
+            repo_page = requests.get(repo_link, headers=headers)
         if repo_page.status_code != 200:
             return None
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
@@ -253,9 +256,10 @@ class Github:
             return branch_tag.text.strip()
         except:
             return None
-    def getRepoBranchCount(self, repo):
-        repo_link = f"{self.home_page_link}/{repo}"
-        repo_page = requests.get(repo_link, headers=headers)
+    def getRepoBranchCount(self, repo, repo_page=None):
+        if repo_page == None:
+            repo_link = f"{self.home_page_link}/{repo}"
+            repo_page = requests.get(repo_link, headers=headers)
         if repo_page.status_code != 200:
             return None
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
@@ -280,20 +284,22 @@ class Github:
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
         star_tag = repo_html.find_all("a", attrs={"href": f"/{self.id}/{repo}/watchers"})[-1]
         return int(star_tag.text.strip().split('\n')[0])
-    def getRepoCommitCount(self, repo):
-        repo_link = f"{self.home_page_link}/{repo}"
-        repo_page = requests.get(repo_link, headers=headers)
+    def getRepoCommitCount(self, repo, repo_page=None):
+        if repo_page == None:
+            repo_link = f"{self.home_page_link}/{repo}"
+            repo_page = requests.get(repo_link, headers=headers)
         if repo_page.status_code != 200:
             return None
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
         try:
-            star_tag = repo_html.find_all("a", attrs={"href": f"/{self.id}/{repo}/commits/{self.getRepoDefaultBranch(repo)}"})[-1]
+            star_tag = repo_html.find_all("a", attrs={"href": f"/{self.id}/{repo}/commits/{self.getRepoDefaultBranch(repo, repo_page=repo_page)}"})[-1]
             return int(star_tag.text.strip().split('\n')[0])
         except:
             return 0
-    def getRepoForkCount(self, repo):
-        repo_link = f"{self.home_page_link}/{repo}"
-        repo_page = requests.get(repo_link, headers=headers)
+    def getRepoForkCount(self, repo, repo_page=None):
+        if repo_page == None:
+            repo_link = f"{self.home_page_link}/{repo}"
+            repo_page = requests.get(repo_link, headers=headers)
         if repo_page.status_code != 200:
             return None
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
@@ -332,10 +338,11 @@ class Github:
         if "Cookie" in headers.keys():
             users = users[1:]
         return users
-    def getRepoTopics(self, repo):
+    def getRepoTopics(self, repo, repo_page=None):
         topics = []
-        repo_link = f"{self.home_page_link}/{repo}"
-        repo_page = requests.get(repo_link, headers=headers)
+        if repo_page == None:
+            repo_link = f"{self.home_page_link}/{repo}"
+            repo_page = requests.get(repo_link, headers=headers)
         if repo_page.status_code != 200:
             return None
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
@@ -343,9 +350,10 @@ class Github:
         for topic_tag in topic_tags:
             topics.append({"name": topic_tag.text.strip(), "link": f"{Github.github[:-1]}{topic_tag.get_attribute_list(key='href')[0]}"})
         return topics
-    def getRepoAbout(self, repo):
-        repo_link = f"{self.home_page_link}/{repo}"
-        repo_page = requests.get(repo_link, headers=headers)
+    def getRepoAbout(self, repo, repo_page=None):
+        if repo_page == None:
+            repo_link = f"{self.home_page_link}/{repo}"
+            repo_page = requests.get(repo_link, headers=headers)
         if repo_page.status_code != 200:
             return None
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
@@ -357,10 +365,11 @@ class Github:
                     return about_tag.text.strip()
                 except AttributeError:
                     return None
-    def getRepoLanguages(self, repo):
+    def getRepoLanguages(self, repo, repo_page=None):
         languages = []
-        repo_link = f"{self.home_page_link}/{repo}"
-        repo_page = requests.get(repo_link, headers=headers)
+        if repo_page == None:
+            repo_link = f"{self.home_page_link}/{repo}"
+            repo_page = requests.get(repo_link, headers=headers)
         if repo_page.status_code != 200:
             return None
         repo_html = BeautifulSoup(repo_page.content, "html.parser")
