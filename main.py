@@ -5,6 +5,7 @@ from pathlib import Path
 from datetime import date
 from subprocess import run
 from bs4 import BeautifulSoup
+from datetime import datetime
 from optparse import OptionParser
 from pickle import dump, load
 from colorama import Fore, Back, Style
@@ -31,6 +32,21 @@ def get_arguments(*args):
     for arg in args:
         parser.add_option(arg[0], arg[1], dest=arg[2], help=arg[3])
     return parser.parse_args()[0]
+
+month_indexes = {
+    "January": 1,
+    "February": 2,
+    "March": 3,
+    "April": 4,
+    "May": 5,
+    "June": 6,
+    "July": 7,
+    "August": 8,
+    "September": 9,
+    "October": 10,
+    "November": 11,
+    "December": 12
+}
 
 class Github:
     github = "https://github.com/"
@@ -391,7 +407,7 @@ class Github:
             link = f"{Github.github[:-1]}{year_tag.get_attribute_list(key='href')[0]}"
             page = requests.get(link, headers=headers)
             html = BeautifulSoup(page.content, "html.parser")
-            rect_tags = html.find_all("rect", attrs={"class": "ContributionCalendar-day"})
+            rect_tags = html.find_all("span", attrs={"class": "sr-only"})
             for rect_tag in rect_tags:
                 if rect_tag.text != "":
                     contribution = rect_tag.text.split(' ')
@@ -399,11 +415,14 @@ class Github:
                     if contribution[0] == "No":
                         contribution_data["contributions"] = 0
                     else:
-                        contribution_data["contributions"] = int(contribution[0])
-                    contribution_data["day"] = contribution[3][:-1]
-                    contribution_data["month"] = contribution[4]
-                    contribution_data["date"] = contribution[5]
-                    contribution_data["year"] = contribution[6]
+                        try:
+                            contribution_data["contributions"] = int(contribution[0])
+                        except:
+                            continue
+                    contribution_data["month"] = contribution[3]
+                    contribution_data["date"] = contribution[4][:-1]
+                    contribution_data["year"] = year_tag.text
+                    contribution_data["day"] = datetime(int(contribution_data["year"]), int(month_indexes[contribution_data["month"]]), int(contribution_data["date"][:-2])).strftime("%A")
                     contribution_calendar.append(contribution_data)
         return contribution_calendar
     def dumpRepo(self, repo):
